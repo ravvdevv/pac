@@ -1,0 +1,5 @@
+node_modules/
+.pacrc.json
+.DS_Store
+*.log
+.env
