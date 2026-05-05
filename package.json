@@ -1,6 +1,6 @@
 {
   "name": "pac-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Prompt Auto Creator - Transform messy ideas into high-quality AI prompts from your terminal.",
   "type": "module",
   "main": "index.js",
@@ -16,7 +16,7 @@
     "groq",
     "productivity"
   ],
-  "author": "",
+  "author": "ravvdevv",
   "license": "MIT",
   "dependencies": {
     "@inquirer/prompts": "^8.4.2",
