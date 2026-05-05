@@ -1,18 +1,18 @@
 import { SYSTEM_PROMPT, getUserPrompt, FOLLOWUP_PROMPT, getFollowUpPrompt } from './prompts.js';
 
-export async function callAI(config, input) {
-  return callProvider(config, SYSTEM_PROMPT, getUserPrompt(input));
+export async function* callAI(config, input) {
+  yield* callProvider(config, SYSTEM_PROMPT, getUserPrompt(input));
 }
 
-export async function callFollowUp(config, currentPrompt, instructions) {
-  return callProvider(config, FOLLOWUP_PROMPT, getFollowUpPrompt(currentPrompt, instructions));
+export async function* callFollowUp(config, currentPrompt, instructions) {
+  yield* callProvider(config, FOLLOWUP_PROMPT, getFollowUpPrompt(currentPrompt, instructions));
 }
 
-async function callProvider(config, systemPrompt, userMessage) {
+async function* callProvider(config, systemPrompt, userMessage) {
   const { provider, apiKey, model } = config;
 
   if (provider === 'openrouter') {
-    return callOpenAICompatible(
+    yield* callOpenAICompatible(
       'https://openrouter.ai/api/v1/chat/completions',
       apiKey,
       model,
@@ -20,7 +20,7 @@ async function callProvider(config, systemPrompt, userMessage) {
       userMessage
     );
   } else if (provider === 'groq') {
-    return callOpenAICompatible(
+    yield* callOpenAICompatible(
       'https://api.groq.com/openai/v1/chat/completions',
       apiKey,
       model,
@@ -28,13 +28,13 @@ async function callProvider(config, systemPrompt, userMessage) {
       userMessage
     );
   } else if (provider === 'gemini') {
-    return callGemini(apiKey, model, systemPrompt, userMessage);
+    yield* callGemini(apiKey, model, systemPrompt, userMessage);
   } else {
     throw new Error(`Unsupported provider: ${provider}`);
   }
 }
 
-async function callOpenAICompatible(url, apiKey, model, systemPrompt, userMessage) {
+async function* callOpenAICompatible(url, apiKey, model, systemPrompt, userMessage) {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -49,7 +49,8 @@ async function callOpenAICompatible(url, apiKey, model, systemPrompt, userMessag
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage }
       ],
-      temperature: 0.7
+      temperature: 0.7,
+      stream: true
     })
   });
 
@@ -58,18 +59,35 @@ async function callOpenAICompatible(url, apiKey, model, systemPrompt, userMessag
     throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
   }
 
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  
-  if (!content) {
-    throw new Error('API returned an empty response. Please try again.');
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const dataStr = line.slice(6).trim();
+        if (dataStr === '[DONE]') return;
+
+        try {
+          const data = JSON.parse(dataStr);
+          const content = data.choices?.[0]?.delta?.content;
+          if (content) yield content;
+        } catch (e) {
+          // Ignore parse errors for incomplete chunks
+        }
+      }
+    }
   }
-  
-  return content;
 }
 
-async function callGemini(apiKey, model, systemPrompt, userMessage) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+async function* callGemini(apiKey, model, systemPrompt, userMessage) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -94,12 +112,27 @@ async function callGemini(apiKey, model, systemPrompt, userMessage) {
     throw new Error(errorData.error?.message || `Gemini API request failed with status ${response.status}`);
   }
 
-  const data = await response.json();
-  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
 
-  if (!content) {
-    throw new Error('Gemini returned an empty response. This might be due to safety filters or a temporary issue.');
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(line.slice(6));
+          const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (content) yield content;
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
   }
-
-  return content;
 }
+

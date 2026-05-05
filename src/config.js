@@ -1,12 +1,18 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
 import { select, input, Separator } from '@inquirer/prompts';
-import search from '@inquirer/search';
 import pc from 'picocolors';
-import ora from 'ora';
+import os from 'os';
+import { readFile, writeFile, access } from 'node:fs/promises';
 
-const CONFIG_PATH = path.join(os.homedir(), '.pacrc.json');
+const CONFIG_PATH = `${os.homedir()}/.pacrc.json`;
+
+async function fileExists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export const PROVIDERS = [
   { name: 'OpenRouter (Default)', value: 'openrouter' },
@@ -31,6 +37,7 @@ export const STATIC_MODELS = {
 };
 
 async function fetchOpenRouterModels() {
+  const { default: ora } = await import('ora');
   const spinner = ora('Fetching OpenRouter models...').start();
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models');
@@ -48,9 +55,10 @@ async function fetchOpenRouterModels() {
 }
 
 export async function getConfig() {
-  if (fs.existsSync(CONFIG_PATH)) {
+  if (await fileExists(CONFIG_PATH)) {
     try {
-      return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+      const content = await readFile(CONFIG_PATH, 'utf-8');
+      return JSON.parse(content);
     } catch (e) {
       console.error(pc.red('Error reading config file. Re-initializing...'));
     }
@@ -90,6 +98,7 @@ async function onboard() {
 
     if (initialChoice === 'SEARCH_ALL') {
       const allModels = await fetchOpenRouterModels();
+      const { default: search } = await import('@inquirer/search');
       model = await search({
         message: 'Type to search for a model:',
         source: async (input) => {
@@ -112,32 +121,38 @@ async function onboard() {
 
   const config = { provider, model, apiKey };
 
-  saveConfig(config);
+  await saveConfig(config);
   console.log(pc.green('\nConfiguration saved successfully!\n'));
   
   return config;
 }
 
-export function saveConfig(config) {
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+export async function saveConfig(config) {
+  await writeFile(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
-export function updateConfig(updates) {
-  const current = fs.existsSync(CONFIG_PATH) 
-    ? JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8')) 
-    : { provider: 'openrouter', model: 'google/gemini-2.0-flash-001' };
+export async function updateConfig(updates) {
+  let current = { provider: 'openrouter', model: 'google/gemini-2.0-flash-001' };
+  
+  if (await fileExists(CONFIG_PATH)) {
+    try {
+      const content = await readFile(CONFIG_PATH, 'utf-8');
+      current = JSON.parse(content);
+    } catch (e) {}
+  }
   
   const updated = { ...current, ...updates };
-  saveConfig(updated);
+  await saveConfig(updated);
   return updated;
 }
 
-export function viewConfig() {
-  if (!fs.existsSync(CONFIG_PATH)) {
+export async function viewConfig() {
+  if (!(await fileExists(CONFIG_PATH))) {
     console.log(pc.yellow('No configuration found. Run pac to get started.'));
     return;
   }
-  const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+  const content = await readFile(CONFIG_PATH, 'utf-8');
+  const config = JSON.parse(content);
   console.log(pc.bold(pc.cyan('\nCurrent Configuration:')));
   console.log(pc.dim('File: ') + CONFIG_PATH + '\n');
   Object.entries(config).forEach(([key, value]) => {
@@ -150,8 +165,11 @@ export function viewConfig() {
   console.log('');
 }
 
-export function clearConfig() {
-  if (fs.existsSync(CONFIG_PATH)) {
-    fs.unlinkSync(CONFIG_PATH);
+export async function clearConfig() {
+  if (await fileExists(CONFIG_PATH)) {
+    const { unlink } = await import('node:fs/promises');
+    await unlink(CONFIG_PATH);
   }
 }
+
+

@@ -21,6 +21,7 @@ bun install -g pac-ai
 npm install -g pac-ai
 ```
 
+
 ### Run without installing
 ```bash
 npx pac-ai

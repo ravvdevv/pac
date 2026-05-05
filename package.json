@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "Prompt Auto Create - Transform messy ideas into high-quality AI prompts from your terminal.",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "bin": {
-    "pac": "./index.js"
+    "pac": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "ncc build index.js -o dist -m --no-cache",
+    "prepublishOnly": "bun run build"
   },
   "keywords": [
     "cli",
@@ -18,15 +22,21 @@
   ],
   "author": "ravvdevv",
   "license": "MIT",
-  "dependencies": {
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
     "@inquirer/prompts": "^8.4.2",
     "@inquirer/search": "^4.1.8",
+    "@vercel/ncc": "^0.38.4",
     "clipboardy": "^5.3.1",
     "commander": "^14.0.3",
     "ora": "^9.4.0",
     "picocolors": "^1.1.1"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   }
 }
