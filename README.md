@@ -15,17 +15,17 @@ Transform your messy, fragmented ideas into high-quality, structured AI prompts 
 ### Globally
 ```bash
 # Using bun
-bun install -g @ravvdevv/pac
+bun install -g pac-cli
 
 # Using npm
-npm install -g @ravvdevv/pac
+npm install -g pac-cli
 ```
 
 ### Run without installing
 ```bash
-npx @ravvdevv/pac
+npx pac-cli
 # or
-bunx @ravvdevv/pac
+bunx pac-cli
 ```
 
 ## Usage

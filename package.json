@@ -1,5 +1,5 @@
 {
-  "name": "@ravvdevv/pac",
+  "name": "pac-cli",
   "version": "1.0.0",
   "description": "Prompt Auto Creator - Transform messy ideas into high-quality AI prompts from your terminal.",
   "type": "module",
