@@ -1,6 +1,6 @@
 {
   "name": "pac-ai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Prompt Auto Create - Transform messy ideas into high-quality AI prompts from your terminal.",
   "type": "module",
   "main": "dist/index.js",
