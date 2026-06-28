@@ -6,9 +6,10 @@ import pc from 'picocolors';
 
 import { getConfig, updateConfig, viewConfig, clearConfig } from './src/config.js';
 import { callAI, callFollowUp } from './src/ai.js';
+import { TARGETS } from './src/prompts.js';
 import { printBanner, printWarning, formatOutput, printError, streamOutput } from './src/ui.js';
 
-const PACKAGE_VERSION = '1.2.0';
+const PACKAGE_VERSION = '1.3.0';
 const program = new Command();
 
 program
@@ -19,6 +20,7 @@ program
   .option('--key <key>', 'Set API key directly')
   .option('--model <model>', 'Set AI model directly')
   .option('--reset', 'Reset configuration and onboarding')
+  .option('--for <target>', 'Prompt target: general, code, creative, or agent')
   .action(async (idea, options) => {
     try {
       if (options.reset) {
@@ -35,7 +37,7 @@ program
         if (!idea) return;
       }
 
-      await main(idea);
+      await main(idea, options.for);
     } catch (err) {
       if (err.name === 'ExitPromptError') {
         console.log(pc.dim('\nProcess terminated by user.'));
@@ -63,18 +65,27 @@ async function checkUpdate(currentVersion) {
   } catch {} // skip on network errors
 }
 
-async function main(idea) {
+async function main(idea, targetFromFlag) {
   const config = await getConfig();
   printBanner();
   await checkUpdate(PACKAGE_VERSION);
 
   let currentInput = idea;
   let currentPrompt = null;
+  let currentTarget = targetFromFlag ? targetFromFlag.toLowerCase() : null;
 
   if (!currentInput) {
     currentInput = await input({
       message: 'Paste your prompt:',
       validate: (val) => val.trim().length > 0 || 'Input cannot be empty'
+    });
+  }
+
+  if (!currentTarget) {
+    currentTarget = await select({
+      message: 'What is this prompt for?',
+      choices: TARGETS,
+      default: 'general'
     });
   }
 
@@ -87,7 +98,7 @@ async function main(idea) {
       }).start();
 
       try {
-        const stream = await callAI(config, currentInput);
+        const stream = await callAI(config, currentInput, currentTarget);
         spinner.stop();
         currentPrompt = await streamOutput(stream);
         printWarning();

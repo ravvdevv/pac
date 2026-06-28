@@ -1,7 +1,7 @@
-import { SYSTEM_PROMPT, getUserPrompt, FOLLOWUP_PROMPT, getFollowUpPrompt } from './prompts.js';
+import { getSystemPrompt, getUserPrompt, FOLLOWUP_PROMPT, getFollowUpPrompt } from './prompts.js';
 
-export async function* callAI(config, input) {
-  yield* callProvider(config, SYSTEM_PROMPT, getUserPrompt(input));
+export async function* callAI(config, input, target = 'general') {
+  yield* callProvider(config, getSystemPrompt(target), getUserPrompt(input, target));
 }
 
 export async function* callFollowUp(config, currentPrompt, instructions) {
