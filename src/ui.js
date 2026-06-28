@@ -10,11 +10,10 @@ export function printWarning() {
 
 export async function streamOutput(stream) {
   let fullContent = '';
-  process.stdout.write(pc.white('')); // Start white color
-  
+
   for await (const chunk of stream) {
     fullContent += chunk;
-    process.stdout.write(chunk);
+    process.stdout.write(pc.white(chunk));
   }
   
   process.stdout.write('\n');

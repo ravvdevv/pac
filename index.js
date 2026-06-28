@@ -77,8 +77,8 @@ async function main(idea) {
       try {
         const stream = await callAI(config, currentInput);
         spinner.stop();
-        printWarning();
         currentPrompt = await streamOutput(stream);
+        printWarning();
       } catch (err) {
         spinner.stop();
         printError(err);
@@ -120,19 +120,29 @@ async function main(idea) {
       });
 
       const { default: ora } = await import('ora');
-      const spinner2 = ora({
-        text: 'Refining prompt based on follow-up...',
-        spinner: 'star'
-      }).start();
+      while (true) {
+        const spinner2 = ora({
+          text: 'Refining prompt based on follow-up...',
+          spinner: 'star'
+        }).start();
 
-      try {
-        const stream = await callFollowUp(config, currentPrompt, instructions);
-        spinner2.stop();
-        printWarning();
-        currentPrompt = await streamOutput(stream);
-      } catch (err) {
-        spinner2.stop();
-        printError(err);
+        try {
+          const stream = await callFollowUp(config, currentPrompt, instructions);
+          spinner2.stop();
+          currentPrompt = await streamOutput(stream);
+          break;
+        } catch (err) {
+          spinner2.stop();
+          printError(err);
+          const retry = await select({
+            message: 'Retry?',
+            choices: [
+              { name: 'Yes', value: true },
+              { name: 'No', value: false }
+            ]
+          });
+          if (!retry) break;
+        }
       }
     } else if (action === 'regenerate') {
       currentPrompt = null;
