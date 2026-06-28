@@ -6,10 +6,10 @@ import pc from 'picocolors';
 
 import { getConfig, updateConfig, viewConfig, clearConfig } from './src/config.js';
 import { callAI, callFollowUp } from './src/ai.js';
-import { TARGETS } from './src/prompts.js';
+import { TARGETS, detectTarget } from './src/prompts.js';
 import { printBanner, printWarning, formatOutput, printError, streamOutput } from './src/ui.js';
 
-const PACKAGE_VERSION = '1.3.0';
+const PACKAGE_VERSION = '1.4.0';
 const program = new Command();
 
 program
@@ -82,11 +82,14 @@ async function main(idea, targetFromFlag) {
   }
 
   if (!currentTarget) {
-    currentTarget = await select({
-      message: 'What is this prompt for?',
-      choices: TARGETS,
-      default: 'general'
-    });
+    currentTarget = detectTarget(currentInput);
+    if (!currentTarget) {
+      currentTarget = await select({
+        message: 'What is this prompt for?',
+        choices: TARGETS,
+        default: 'general'
+      });
+    }
   }
 
   while (true) {
