@@ -162,7 +162,37 @@ export async function viewConfig() {
       console.log(`${pc.bold(key)}: ${value}`);
     }
   });
-  console.log('');
+
+  const change = await select({
+    message: 'Change something?',
+    choices: [
+      { name: 'Provider', value: 'provider' },
+      { name: 'Model', value: 'model' },
+      { name: 'API Key', value: 'apiKey' },
+      { name: pc.dim('Nothing'), value: null },
+    ]
+  });
+  if (!change) return;
+
+  const updates = {};
+  if (change === 'provider') {
+    updates.provider = await select({ message: 'Select provider:', choices: PROVIDERS });
+    if (updates.provider === 'openrouter') {
+      const recommended = STATIC_MODELS.openrouter;
+      const model = await select({ message: 'Select model:', choices: recommended });
+      updates.model = model;
+    } else {
+      updates.model = await select({ message: 'Select model:', choices: STATIC_MODELS[updates.provider] });
+    }
+  } else if (change === 'model') {
+    updates.model = await select({ message: 'Select model:', choices: Object.values(STATIC_MODELS).flat() });
+    updates.model = model;
+  } else if (change === 'apiKey') {
+    updates.apiKey = await input({ message: 'Paste your API key:', validate: v => v.trim().length > 0 });
+  }
+
+  await updateConfig(updates);
+  console.log(pc.green('Configuration updated.\n'));
 }
 
 export async function clearConfig() {
