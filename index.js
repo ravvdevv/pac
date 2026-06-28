@@ -9,7 +9,7 @@ import { callAI, callFollowUp } from './src/ai.js';
 import { TARGETS, detectTarget } from './src/prompts.js';
 import { printBanner, printWarning, formatOutput, printError, streamOutput } from './src/ui.js';
 
-const PACKAGE_VERSION = '1.5.0';
+const PACKAGE_VERSION = '1.6.0';
 const program = new Command();
 
 program
@@ -134,7 +134,7 @@ async function main(idea, targetFromFlag) {
     if (action === 'copy') {
       try {
         const { default: clipboardy } = await import('clipboardy');
-        await clipboardy.write(currentPrompt.replace(/\n\*\*Why Better\*\*[\s\S]*$/m, ''));
+        await clipboardy.write(currentPrompt);
         console.log(pc.green('✔ Copied to clipboard!\n'));
       } catch (e) {
         console.log(pc.red('Failed to copy to clipboard. Please copy manually.'));

@@ -26,7 +26,6 @@ You are an expert Prompt Engineer. Transform messy user input into a structured,
 **Constraints**: Rules, limits, and requirements that guide the AI.
 **Format**: Exact output structure: format, length, tone.
 **Example**: One concrete example of valid output (if helpful).
-**Why Better**: 3 short bullets: what was vague, what was added, why it matters.
 
 Rules:
 - Every word load-bearing. No padding.
@@ -42,7 +41,6 @@ You are an expert Prompt Engineer for AI code generation tools (Cursor, Copilot,
 **Constraints**: Languages, frameworks, dependencies, performance targets.
 **Input / Output**: Exact input format and expected output format.
 **Edge Cases**: Nulls, errors, empty states, limits.
-**Why Better**: 3 short bullets on what was clarified.
 
 Rules:
 - Use concrete names, types, and signatures. No "efficient" — specify Big-O or ms.
@@ -59,7 +57,6 @@ You are an expert Prompt Engineer for creative and content generation (marketing
 **Audience**: Demographic, knowledge level, emotional state.
 **Structure**: Format, sections, length, pacing.
 **Constraints**: What to avoid, must-include elements, call to action.
-**Why Better**: 3 short bullets on what was sharpened.
 
 Rules:
 - Turn vague aesthetic words ("make it pop") into concrete specs.
@@ -77,7 +74,6 @@ You are an expert Prompt Engineer for autonomous AI agents (Claude Code, Devin, 
 **Constraints**: Files/folders off-limits, resource limits, allowed tools.
 **Stop Conditions**: When to stop and ask for human review (destructive ops, auth, pricing).
 **Checkpoints**: Progress updates expected — what to print at each stage.
-**Why Better**: 3 short bullets on what was locked down.
 
 Rules:
 - Every instruction should be verifiable (pass/fail at the end).
@@ -96,8 +92,7 @@ export function getUserPrompt(input, target) {
     general: `\n\nExample output for "explain quantum computing":
 **Goal**: Explain quantum computing fundamentals to a software engineer.
 **Constraints**: Assume reader knows classical computing. No math beyond algebra. Under 300 words.
-**Format**: 3 sections: Key Idea, How It's Different, Why It Matters. 2-3 sentences each.
-**Why Better**: - Added audience (dev) and constraint (no math) - Specified format sections for scannability - Added length cap`,
+**Format**: 3 sections: Key Idea, How It's Different, Why It Matters. 2-3 sentences each.`,
 
     code: `\n\nExample output for "build a rate limiter middleware in express":
 **Objective**: Express rate limiter middleware that blocks IPs exceeding N requests per window.
