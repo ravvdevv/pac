@@ -1,11 +1,11 @@
 {
   "name": "pac-ai",
-  "version": "1.1.0",
-  "description": "Prompt Auto Create - Transform messy ideas into high-quality AI prompts from your terminal.",
+  "version": "1.2.0",
+  "description": "Prompt Auto Create - Transform raw ideas into production-ready AI prompts from your terminal.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "pac": "./dist/index.js"
+    "pac": "dist/index.js"
   },
   "scripts": {
     "build": "ncc build index.js -o dist -m --no-cache",

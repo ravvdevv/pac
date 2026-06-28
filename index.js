@@ -8,13 +8,14 @@ import { getConfig, updateConfig, viewConfig, clearConfig } from './src/config.j
 import { callAI, callFollowUp } from './src/ai.js';
 import { printBanner, printWarning, formatOutput, printError, streamOutput } from './src/ui.js';
 
+const PACKAGE_VERSION = '1.2.0';
 const program = new Command();
 
 program
   .name('pac')
   .description('Prompt Auto Create - Crafting refined prompts for AI')
-  .version('1.0.0')
-  .argument('[idea]', 'Initial messy idea for the prompt')
+  .version(PACKAGE_VERSION)
+  .argument('[idea]', 'Describe what you want the AI to do')
   .option('--key <key>', 'Set API key directly')
   .option('--model <model>', 'Set AI model directly')
   .option('--reset', 'Reset configuration and onboarding')
@@ -52,16 +53,27 @@ program
     await viewConfig();
   });
 
+async function checkUpdate(currentVersion) {
+  try {
+    const res = await fetch('https://registry.npmjs.org/pac-ai/latest');
+    const { version } = await res.json();
+    if (version !== currentVersion) {
+      console.log(pc.dim(`  Update ${currentVersion} → ${version}: npm i -g pac-ai\n`));
+    }
+  } catch {} // skip on network errors
+}
+
 async function main(idea) {
   const config = await getConfig();
   printBanner();
+  await checkUpdate(PACKAGE_VERSION);
 
   let currentInput = idea;
   let currentPrompt = null;
 
   if (!currentInput) {
     currentInput = await input({
-      message: 'Paste your messy idea:',
+      message: 'Paste your prompt:',
       validate: (val) => val.trim().length > 0 || 'Input cannot be empty'
     });
   }
@@ -70,7 +82,7 @@ async function main(idea) {
     if (!currentPrompt) {
       const { default: ora } = await import('ora');
       const spinner = ora({
-        text: 'Generating improved prompt...',
+        text: 'Generating structured prompt...',
         spinner: 'star'
       }).start();
 
@@ -122,7 +134,7 @@ async function main(idea) {
       const { default: ora } = await import('ora');
       while (true) {
         const spinner2 = ora({
-          text: 'Refining prompt based on follow-up...',
+          text: 'Refining prompt...',
           spinner: 'star'
         }).start();
 
@@ -148,7 +160,7 @@ async function main(idea) {
       currentPrompt = null;
     } else if (action === 'edit') {
       currentInput = await input({
-        message: 'Edit your idea:',
+        message: 'Edit your prompt:',
         default: currentInput
       });
       currentPrompt = null;

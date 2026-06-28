@@ -1,7 +1,7 @@
 import pc from 'picocolors';
 
 export function printBanner() {
-  console.log(`\n${pc.cyan(pc.bold('PAC'))} ${pc.dim('—')} ${pc.white('Refining ideas into professional prompts.')}\n`);
+  console.log(`\n${pc.cyan(pc.bold('PAC'))} ${pc.dim('—')} ${pc.white('Crafting professional AI prompts.')}\n`);
 }
 
 export function printWarning() {
